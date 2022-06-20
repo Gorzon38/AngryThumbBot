@@ -123,7 +123,6 @@ client.on('messageCreate', (message) => {
                             {
                                 let gif_tags = user_message_arg.slice(3)
                                 database["gifs"][gif_link] = gif_tags
-                                console.log(database["gifs"][gif_link])
                                 SaveDatabase()
                                 message.reply("added")
                             }
