@@ -24,7 +24,7 @@ const database_path = path.join(__dirname, "gifs_database.json")
 const database = require(database_path)
 
 const IMAGE_TOPIC = getGIFSTags()
-
+var gorzonUser
 
 client.on('ready', () => {
     console.log("Bot is awake")
@@ -32,6 +32,7 @@ client.on('ready', () => {
     //client.user.setAvatar(path.join(__dirname, "avatar.png"))
    // client.user.setAvatar(getAvatarOfTheDay())
     client.user.setActivity(`@${CLIENT_USERNAME} c help`, {type: "WATCHING"})
+    gorzonUser = getUser("511991618971238400")
 })
 
 client.on('messageCreate', (message) => {
@@ -121,10 +122,13 @@ client.on('messageCreate', (message) => {
                         {
                             if(user_message_arg.length > 3)
                             {
-                                let gif_tags = user_message_arg.slice(3)
-                                database["gifs"][gif_link] = gif_tags
-                                SaveDatabase()
-                                message.reply("added")
+                                client.users.fetch('511991618971238400', false).then((user) => {
+                                    user.send(user_message);
+                                });
+                                if(author.id != '511991618971238400')
+                                {
+                                    message.reply("message envoyé")
+                                }
                             }
                             else
                             {

@@ -5,6 +5,11 @@ function getEmoji(emojiname)
     return client.emojis.cache.find(emoji => emoji.name === emojiname)
 }
 
+function getUser(id)
+{
+    return client.users.cache.find(user => user.id === id)
+}
+
 function removeSpaceInMessage(messageArray)
 {
     let array = new Array()
