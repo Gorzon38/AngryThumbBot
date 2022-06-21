@@ -4,7 +4,6 @@ const Discord = require('discord.js')
 const dotenv = require('dotenv')
 dotenv.config()
 
-const path = require('path');
 const fs = require('fs');
 
 eval(fs.readFileSync("imagesScript.js").toString())
@@ -20,11 +19,7 @@ const client = new Discord.Client({
 const CLIENT_USERNAME = "Angry Thumb";
 const ID = "584100481824063489"
 
-const database_path = path.join(__dirname, "gifs_database.json")
-const database = require(database_path)
-
 const IMAGE_TOPIC = getGIFSTags()
-var gorzonUser
 
 client.on('ready', () => {
     console.log("Bot is awake")
@@ -32,7 +27,6 @@ client.on('ready', () => {
     //client.user.setAvatar(path.join(__dirname, "avatar.png"))
    // client.user.setAvatar(getAvatarOfTheDay())
     client.user.setActivity(`@${CLIENT_USERNAME} c help`, {type: "WATCHING"})
-    gorzonUser = getUser("511991618971238400")
 })
 
 client.on('messageCreate', (message) => {
@@ -88,11 +82,7 @@ client.on('messageCreate', (message) => {
         }
         else if(user_message_arg[0] == 'c')
         {
-            if(user_message_arg[1] == "hello" || user_message_arg[1] == "hi")
-            {
-                message.reply(`Hello ${message.author.username}!`)
-            }
-            else if(user_message_arg[1] == "exist" && user_message_arg.length > 2)
+            if(user_message_arg[1] == "existe" && user_message_arg.length > 2)
             {
                 message.reply(gifExist(user_message_arg[2]) ? "oui" : "non")
             }
@@ -103,8 +93,9 @@ client.on('messageCreate', (message) => {
             else if(user_message_arg[1] == "help")
             {
                 var embedd = new Discord.MessageEmbed()
-                .setDescription("Commands :\n`hello`, `ping`, `help`")
-                .addField("Use gif command :", "`@Angry Thumb <*tags*>`")
+                .setDescription("Commands :\n`hello`, `ping`, `help`, `add`, `existe`")
+                .addField("gif command :", "`@Angry Thumb <tags>`")
+                .addField("add command :", "`@Angry Thumb c add <link> <tags>`")
                 .addField("GIF topics :", IMAGE_TOPIC.toString())
                 .setColor("RANDOM")
                 .setTimestamp(message.createdAt)
@@ -113,41 +104,27 @@ client.on('messageCreate', (message) => {
             }
             else if(user_message_arg[1] == "add")
             {
-                if(IsAdmin(message.author.id))
+                if(IsAdmin(message.author.id) && user_message_arg.length > 3 && user_message_arg[2].includes("https://"))
                 {
-                    if(user_message_arg.length > 2 && user_message_arg[2].includes("https://"))
+                    let gif_link = user_message_arg[2]
+                    if(!gifExist(gif_link))
                     {
-                        let gif_link = user_message_arg[2]
-                        if(!gifExist(gif_link))
+                        client.users.fetch('511991618971238400', false).then((user) => {
+                            user.send(user_message);
+                        });
+                        if(author.id != '511991618971238400')
                         {
-                            if(user_message_arg.length > 3)
-                            {
-                                client.users.fetch('511991618971238400', false).then((user) => {
-                                    user.send(user_message);
-                                });
-                                if(author.id != '511991618971238400')
-                                {
-                                    message.reply("message envoyé")
-                                }
-                            }
-                            else
-                            {
-                                message.reply("missing tags")
-                            }
-                        }
-                        else
-                        {
-                            message.reply("existe")
+                            message.reply("message envoyé")
                         }
                     }
                     else
                     {
-                        message.reply("missing gif link")
+                        message.reply("gif existe déjà")
                     }
                 }
                 else
                 {
-                    message.reply("you're not admin")
+                    message.reply("erreur")
                 }
             }
             else
@@ -170,21 +147,8 @@ client.on('messageCreate', (message) => {
     }
 })
 
-function SaveDatabase()
-{
-    fs.writeFile(database_path, JSON.stringify(database, null, 4), (err) => {
-        if (err) message.channel.send("Une erreur est survenue.")
-    })
-}
-
 function IsAdmin(id)
 {
     return id == "381430411940855808" || id == "511991618971238400"
 }
-
-function gifExist(gif)
-{
-    return database["gifs"][gif] != undefined
-}
-
 client.login(process.env.TOKEN)

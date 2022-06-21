@@ -1,116 +1,94 @@
+const path = require('path');
 
-const database = require(path.join(__dirname, "gifs_database.json"))
+var gif_database_path = path.join(__dirname, "gifs_database.json")
+var gif_database = require(gif_database_path)
 
-function goodFileExtension(file_arg)
-{
-    let extension = file_arg[file_arg.length-1].split('.')[1]
+var tag_database_path = path.join(__dirname, "tags.json")
+var tag_database = require(tag_database_path)
 
-    return extension == 'gif' || extension == 'png' || extension =='jpg'
-}
-
-function checkGifTag(gif, user_message_arg)
+function checkGifTag(gif, tags)
 {
     let numberTagFound = 0
-    for(let j = 0; j < user_message_arg.length; j++)
+    for(let j = 0; j < tags.length; j++)
     {
-        var topic = user_message_arg[j]
-        //console.log(topic)
-        let tags = database["gifs"][gif]
-        //console.log(tags)
+        var topic = tags[j]
+        let _tags = gif_database["gifs"][gif]
 
-        if(tags.includes(topic))
+        if(_tags.includes(topic))
         {
             numberTagFound++;
         }
     }
-    return numberTagFound == user_message_arg.length
+    return numberTagFound == tags.length
 }
 
-function getGifsWithTopic(user_message_arg)
+function getGifsWithTag(tags)
 {
-    var gifs_key = Object.keys(database["gifs"])
+    var selecte_gifs = []
+    var gifs_key = Object.keys(gif_database["gifs"])
 
     for(let i = 0; i < gifs_key.length; i++)
     {
-        let gif = gifs_key[i]
-        //console.log(gif)
-
-        let tag_include = checkGifTag(gif, user_message_arg)
-
-        if(!tag_include)
+        if(checkGifTag(gifs_key[i], tags))
         {
-            //console.log("remove: " + gif)
-            gifs_key.splice(i, 1)
-            i--;
+            selecte_gifs.push(gifs_key[i])
         }
     }
-    //console.log(gifs_key)    
-    return gifs_key
-}
-
-function getAllGifs()
-{
-    var select_gifs = fs.readdirSync(GIFS_PATH)
-    
-    for( var i = 0; i < select_gifs.length; i++)
-    {             
-        let file_arg = select_gifs[i].split('-')  
-        let file_size_MB = fs.statSync(GIFS_PATH + select_gifs[i]).size / 1000000.0
-
-        if ( file_size_MB > 8 && goodFileExtension(file_arg)) 
-        { 
-            console.log("Found heavy file: "+ select_gifs[i] + "\tsize: " + file_size_MB)
-            select_gifs.splice(i, 1); 
-            i--; 
-        }
-        else if(!goodFileExtension(file_arg))
-        {
-            select_gifs.splice(i, 1); 
-            i--; 
-        }
-    }
-    return select_gifs
+    return selecte_gifs
 }
 
 function getGIF(user_message_arg)
 {
-    if(user_message_arg[0] == 'random')
+    var tags = []
+    for(let i = 0; i< user_message_arg.length; i++)
     {
-        let selectedGifs = getAllGifs()
-        if(selectedGifs.length > 0)
+        let tag = get_tag_parent(user_message_arg[i])
+        if(!tags.includes(tag))
         {
-            return selectedGifs[Math.floor(Math.random() * selectedGifs.length)]
-        }
+            tags.push(tag)
+        } 
     }
-    else
+    let selectedGifs = getGifsWithTag(tags)
+    if(selectedGifs.length > 0)
     {
-        let selectedGifs = getGifsWithTopic(user_message_arg)
-        if(selectedGifs.length > 0)
-        {
-            return selectedGifs[Math.floor(Math.random() * selectedGifs.length)]
-        }
+        return selectedGifs[Math.floor(Math.random() * selectedGifs.length)]
     }
     return undefined
 }
 
-function getGIFSTags()
+function get_tag_parent(tag)
 {
-    var topics = new Array()
-    topics.push('random')
-
-    var gifs_key = Object.keys(database["gifs"])
-
-    for( var i = 0; i < gifs_key.length; i++)
+    var tag_keys = Object.keys(tag_database["tags"])
+    for(let i = 0; i < tag_keys.length; i++)
     {
-        let tags = database["gifs"][gifs_key[i]]
-
-        for(let j = 0; j < tags.length; j++)
+        let tag_parent = tag_database["tags"][tag_keys[i]]
+        for(let j = 0; j< tag_parent.length; j++)
         {
-            if(!topics.includes(tags[j]))
+            let _tag = tag_parent[j]
+            if(_tag == tag)
             {
-                topics.push(tags[j])
+                return tag_keys[i]
             }
         }
     }
-    return topics
+    return tag
+}
+
+function getGIFSTags()
+{
+    return Object.keys(tag_database["tags"])
+}
+
+
+function gifExist(gif)
+{
+    return gif_database["gifs"][gif] != undefined
+}
+
+
+function SaveDatabase()
+{
+   /* fs.writeFile(database_path, JSON.stringify(database, null, 4), (err) => {
+        if (err) message.channel.send("Une erreur est survenue.")
+    })*/
 }
